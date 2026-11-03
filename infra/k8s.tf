@@ -14,6 +14,16 @@ resource "kubernetes_service_account_v1" "agent" {
   }
 }
 
+resource "kubernetes_secret_v1" "telemetry" {
+  metadata {
+    name      = "agent-telemetry"
+    namespace = kubernetes_namespace_v1.travel.metadata[0].name
+  }
+  data = {
+    APPLICATIONINSIGHTS_CONNECTION_STRING = azurerm_application_insights.this.connection_string
+  }
+}
+
 resource "kubernetes_deployment_v1" "agent" {
   metadata {
     name      = "travel-agent"
@@ -57,6 +67,24 @@ resource "kubernetes_deployment_v1" "agent" {
           env {
             name  = "AZURE_OPENAI_API_VERSION"
             value = var.openai_api_version
+          }
+
+          env {
+            name  = "AGENT_NAME"
+            value = local.external_agent_name
+          }
+          env {
+            name  = "OTEL_AGENT_ID"
+            value = local.otel_agent_id
+          }
+          env {
+            name = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+            value_from {
+              secret_key_ref {
+                name = kubernetes_secret_v1.telemetry.metadata[0].name
+                key  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+              }
+            }
           }
 
           resources {

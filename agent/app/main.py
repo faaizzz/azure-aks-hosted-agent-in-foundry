@@ -1,9 +1,13 @@
 from functools import lru_cache
 
-from fastapi import FastAPI
-from pydantic import BaseModel
+from . import telemetry
 
-from .graph import build_agent
+telemetry.setup()  # must run before LangChain/LangGraph are imported
+
+from fastapi import FastAPI  # noqa: E402
+from pydantic import BaseModel  # noqa: E402
+
+from .graph import build_agent  # noqa: E402
 
 app = FastAPI(title="travel-agent")
 

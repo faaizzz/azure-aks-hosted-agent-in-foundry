@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = "~> 2.30"
     }
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.0"
+    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.6"
@@ -19,6 +23,10 @@ terraform {
 
 provider "azurerm" {
   features {}
+  subscription_id = var.subscription_id
+}
+
+provider "azapi" {
   subscription_id = var.subscription_id
 }
 

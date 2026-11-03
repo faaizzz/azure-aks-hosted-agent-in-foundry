@@ -25,3 +25,18 @@ output "agent_identity_client_id" {
 output "agent_image" {
   value = local.image
 }
+
+output "foundry_project_endpoint" {
+  value = local.project_endpoint
+}
+
+output "app_insights_name" {
+  value = azurerm_application_insights.this.name
+}
+
+output "external_agent" {
+  value = {
+    name          = local.external_agent_name
+    otel_agent_id = local.otel_agent_id
+  }
+}

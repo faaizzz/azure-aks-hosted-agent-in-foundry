@@ -73,7 +73,14 @@ resource "azurerm_cognitive_account" "foundry" {
   sku_name              = "S0"
   custom_subdomain_name = "foundry-${local.name}"
   local_auth_enabled    = false # Entra ID only, no API keys
-  tags                  = local.tags
+
+  # Required to create Foundry projects under this account.
+  project_management_enabled = true
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = local.tags
 }
 
 resource "azurerm_cognitive_deployment" "model" {
