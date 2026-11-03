@@ -22,7 +22,12 @@ terraform {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+    # Purge (not just soft-delete) the Foundry account on destroy so nothing is left behind.
+    cognitive_account {
+      purge_soft_delete_on_destroy = true
+    }
+  }
   subscription_id = var.subscription_id
 }
 

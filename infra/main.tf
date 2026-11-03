@@ -44,6 +44,13 @@ resource "azurerm_kubernetes_cluster" "this" {
     vm_size         = var.node_vm_size
     node_count      = var.node_count
     os_disk_size_gb = 32
+
+    # Declared explicitly: Azure injects these defaults, which otherwise show as permanent drift.
+    upgrade_settings {
+      max_surge                     = "10%"
+      drain_timeout_in_minutes      = 0
+      node_soak_duration_in_minutes = 0
+    }
   }
 
   identity {

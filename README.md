@@ -12,6 +12,11 @@ scripts/  stop.sh / start.sh: turn the cluster off/on to save cost
 
 Auth is keyless: the pod uses AKS workload identity -> Entra ID -> `Cognitive Services OpenAI User` on the Foundry account.
 
+## Make targets
+`make help` lists everything. Common ones: `make apply` (create/update all), `make creds`, `make status`,
+`make port-forward` + `make chat MSG="..."`, `make stop` / `make start` (AKS off/on to save cost),
+`make destroy` (remove ALL resources; starts AKS first if stopped; `AUTO=1` skips the prompt).
+
 ## Deploy
 ```
 az login
