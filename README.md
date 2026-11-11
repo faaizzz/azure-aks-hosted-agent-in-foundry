@@ -15,7 +15,8 @@ Auth is keyless: the pod uses AKS workload identity -> Entra ID -> `Cognitive Se
 
 ## Architecture
 ```mermaid
-flowchart LR
+%%{init: {'theme':'base','themeVariables':{'fontSize':'20px'},'flowchart':{'nodeSpacing':50,'rankSpacing':70,'padding':20,'htmlLabels':true}}}%%
+flowchart TB
     user([Developer])
 
     subgraph tf["Terraform (make apply)"]
