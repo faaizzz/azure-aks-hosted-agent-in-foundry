@@ -13,6 +13,63 @@ Makefile  Shortcuts for everything below
 
 Auth is keyless: the pod uses AKS workload identity -> Entra ID -> `Cognitive Services OpenAI User` on the Foundry account.
 
+## Architecture
+```mermaid
+flowchart LR
+    user([Developer])
+
+    subgraph tf["Terraform (make apply)"]
+        direction TB
+        build["az acr build<br/>(image build)"]
+        k8s["Kubernetes objects<br/>(namespace, SA, Deployment, Service)"]
+        reg["register_external_agent.py<br/>(Foundry SDK)"]
+    end
+
+    subgraph rg["Azure resource group"]
+        acr[("ACR Basic<br/>travel-agent image")]
+
+        subgraph aks["AKS (Free tier, 1x B2s)"]
+            svc["Service<br/>ClusterIP :80"]
+            pod["Agent pod<br/>FastAPI + LangGraph<br/>(mock flight/hotel/weather tools)<br/>:8000"]
+            sa["ServiceAccount<br/>(workload identity)"]
+            svc --> pod
+            sa -.-> pod
+        end
+
+        mi["User-assigned<br/>managed identity"]
+        entra["Entra ID<br/>(federated credential)"]
+
+        subgraph foundry["Azure AI Foundry"]
+            acct["Foundry account<br/>gpt-5-mini deployment"]
+            proj["Foundry project<br/>travel-agents"]
+            ext["External agent record<br/>travel-planner-agent"]
+            proj --- ext
+            acct --- proj
+        end
+
+        subgraph obs["Observability"]
+            ai["Application Insights"]
+            law["Log Analytics<br/>(0.1 GB/day cap)"]
+            ai --- law
+        end
+    end
+
+    user -- "make port-forward / make chat" --> svc
+    build -- push --> acr
+    acr -- "pull (AcrPull)" --> pod
+    k8s --> aks
+    reg --> ext
+
+    pod -- "1. OIDC token" --> entra
+    entra -- "2. maps to" --> mi
+    pod -- "3. chat completions<br/>(Cognitive Services OpenAI User)" --> acct
+    pod -- "OpenTelemetry GenAI spans" --> ai
+    ai -. "connected to project" .-> proj
+    proj -. "Traces tab reads spans" .-> ext
+```
+
+Foundry never calls the agent: the agent runs only on AKS and Foundry holds a registration record plus the traces it reads from Application Insights (see [Limitations](#limitations)).
+
 ## Prerequisites
 `az` (logged in: `az login`), `terraform`, `kubectl`, `make`, `uv`, `python3`.
 Set your subscription in `infra/terraform.tfvars`. The region defaults to `eastus2` (`var.location`); a `TF_VAR_location` exported in your shell overrides it.
